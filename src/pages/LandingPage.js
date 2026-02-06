@@ -40,7 +40,7 @@ const LandingPage = () => {
 
   return (
     <div className="landing-page-premium">
-      {/* Navigation */}
+      {/* Navigation - FIXED */}
       <nav className="navbar-premium">
         <div className="nav-container-premium">
           <div className="logo-section-premium">
@@ -61,7 +61,7 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* Hero Section with Dashboard */}
+      {/* Hero Section */}
       <section className="hero-premium">
         <div className="hero-glow"></div>
         <div className="hero-content-premium">
@@ -237,7 +237,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Premium Footer */}
+      {/* Premium Footer - CLEANED UP */}
       <footer className="footer-premium">
         <div className="footer-container-premium">
           <div className="footer-grid">
