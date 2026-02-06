@@ -6,27 +6,28 @@ const LandingPage = () => {
   const navigate = useNavigate();
 
   const features = [
-    {
-      icon: '⚡',
-      title: 'Lightning Fast',
-      description: 'Experience blazing fast performance with our optimized infrastructure'
-    },
-    {
-      icon: '🔒',
-      title: 'Secure & Reliable',
-      description: 'Enterprise-grade security to keep your data safe'
-    },
-    {
-      icon: '📊',
-      title: 'Advanced Analytics',
-      description: 'Get insights with powerful analytics and reporting tools'
-    },
-    {
-      icon: '🎯',
-      title: 'Easy to Use',
-      description: 'Intuitive interface designed for seamless user experience'
-    }
-  ];
+  {
+    icon: '⚡',
+    title: 'Fast Setup',
+    description: 'Launch your subscription system in minutes, not days'
+  },
+  {
+    icon: '🔒',
+    title: 'Secure Payments',
+    description: 'Industry-standard security for payments and user data'
+  },
+  {
+    icon: '📊',
+    title: 'Real-time Analytics',
+    description: 'Track revenue, users, and growth with live insights'
+  },
+  {
+    icon: '🎯',
+    title: 'Scalable Architecture',
+    description: 'Built to grow with startups and enterprises alike'
+  }
+];
+
 
   return (
     <div className="landing-page">
@@ -34,27 +35,43 @@ const LandingPage = () => {
       <section className="hero">
         <div className="hero-content">
           <h1 className="hero-title">
-            Welcome to <span className="brand">SaaS Platform</span>
-          </h1>
-          <p className="hero-subtitle">
-            Streamline your workflow with our powerful subscription management platform
-          </p>
+               Elevate Your <span className="brand">Business</span><br />
+               With Smart SaaS Solutions
+           </h1>
+        <p className="hero-subtitle">
+           Streamline, optimize, and scale your subscriptions with a modern,
+            secure, and powerful SaaS platform.
+        </p>
+
           <div className="hero-buttons">
             <button 
               className="btn btn-primary"
               onClick={() => navigate('/pricing')}
             >
-              Get Started
+              Start Free Trial
             </button>
             <button 
               className="btn btn-secondary"
               onClick={() => navigate('/login')}
             >
-              Sign In
+              Login
             </button>
           </div>
         </div>
       </section>
+
+      {/* Dashboard Preview */}
+      <section className="dashboard-preview">
+         <div className="dashboard-card">
+           <p className="dashboard-title">Welcome back, Abhishek</p>
+               <div className="dashboard-mock">
+                 <div className="dashboard-row"></div>
+                 <div className="dashboard-row"></div>
+                 <div className="dashboard-row small"></div>
+                 <div className="dashboard-row tiny"></div>
+                </div>
+          </div>
+     </section>
 
       {/* Features Section */}
       <section className="features">
