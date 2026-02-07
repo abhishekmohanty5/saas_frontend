@@ -18,41 +18,54 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      const response = await authAPI.login({ email, password });
-      const { token, user: userData } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-      
-      return { success: true };
-    } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login failed' 
-      };
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const response = await authAPI.register(userData);
-      const { token, user: newUser } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      setUser(newUser);
-      
-      return { success: true };
-    } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
-      };
-    }
-  };
+ 
+const login = async (email, password) => {
+  try {
+    const response = await authAPI.login({ email, password });
+    
+    // YOUR BACKEND RETURNS: { message, data: { email, token }, status, timestamp }
+    const { data } = response.data;  // Extract data from AppResponse wrapper
+    const { token, email: userEmail } = data;
+    
+    localStorage.setItem('token', token);
+    
+    // Create user object
+    const userData = {
+      email: userEmail,
+      role: 'USER'  // Default role
+    };
+    
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    
+    return { success: true };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.response?.data?.message || 'Login failed' 
+    };
+  }
+};
+ 
+const register = async (userData) => {
+  try {
+    // Register with backend: { userName, email, password }
+    const regResponse = await authAPI.register(userData);
+    
+    // YOUR BACKEND RETURNS: { message, data: { username, email }, status, timestamp }
+    console.log('Registration successful:', regResponse.data);
+    
+    // After successful registration, auto-login
+    const loginResult = await login(userData.email, userData.password);
+    
+    return loginResult;
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.response?.data?.message || 'Registration failed' 
+    };
+  }
+};
 
   const logout = () => {
     authAPI.logout();

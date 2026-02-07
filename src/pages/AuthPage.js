@@ -52,12 +52,20 @@ const AuthPage = () => {
       newErrors.email = 'Please enter a valid email';
     }
 
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
+   // Password validation
+     if (!formData.password) {
+       newErrors.password = 'Password is required';
+} else if (formData.password.length < 8) {
+  newErrors.password = 'Password must be at least 8 characters';
+} else if (!/(?=.*[A-Z])/.test(formData.password)) {
+  newErrors.password = 'Password must contain at least one uppercase letter';
+} else if (!/(?=.*[a-z])/.test(formData.password)) {
+  newErrors.password = 'Password must contain at least one lowercase letter';
+} else if (!/(?=.*\d)/.test(formData.password)) {
+  newErrors.password = 'Password must contain at least one number';
+} else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
+  newErrors.password = 'Password must contain at least one special character (@$!%*?&)';
+}
 
     // Confirm password validation (only for register)
     if (!isLogin) {
@@ -84,7 +92,7 @@ const AuthPage = () => {
         navigate('/dashboard');
       } else {
         await register({
-          name: formData.name,
+          userName: formData.name,
           email: formData.email,
           password: formData.password
         });
