@@ -123,14 +123,6 @@ const AuthPage = () => {
       </div>
 
       <div className="auth-container">
-        {/* Logo */}
-        <div className="auth-logo">
-          <div className="logo-box">
-            <div className="logo-icon">S</div>
-            <div className="logo-text">SubHub</div>
-          </div>
-        </div>
-
         {/* Auth Card */}
         <div className="auth-card">
           <div className="auth-header">

@@ -74,15 +74,7 @@ const LandingPage = () => {
             <p className="hero-subtitle-premium">
               Streamline, Optimize, and Scale Your Subscription Management with Our Powerful SaaS Solution. Join 1000+ companies managing their subscriptions effortlessly.
             </p>
-            <div className="hero-buttons-premium">
-              <button className="btn-primary-premium" onClick={() => navigate('/pricing')}>
-                <span>14 Days Free Trial</span>
-                <span className="btn-arrow">→</span>
-              </button>
-              <button className="btn-secondary-premium" onClick={() => navigate('/login')}>
-                Login
-              </button>
-            </div>
+            {/* BUTTONS REMOVED */}
             <div className="hero-stats-premium">
               <div className="stat-item-premium">
                 <span className="stat-number-premium">1000+</span>
