@@ -1,67 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../utils/AuthContext';
+import { publicAPI, subscriptionAPI } from '../services/api';
 import './PricingPage.css';
 
 const PricingPage = () => {
   const [billingCycle, setBillingCycle] = useState('monthly');
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [subscribingPlanId, setSubscribingPlanId] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  // Hardcoded pricing plans
-  const plans = [
-    {
-      id: 1,
-      name: 'FREE',
-      price: 0,
-      features: [
-        'Basic subscription tracking',
-        'Up to 5 subscriptions',
-        'Email notifications',
-        'Mobile app access',
-        'Community support'
-      ]
-    },
-    {
-      id: 2,
-      name: 'BASIC',
-      price: 499, // ₹499 per month
-      features: [
-        'Up to 25 subscriptions',
-        'Advanced analytics & insights',
-        'Payment history tracking',
-        'Priority email support',
-        'Export data (CSV, PDF)',
-        'Custom categories & tags',
-        'Bill reminders',
-        'Multi-currency support'
-      ]
-    },
-    {
-      id: 3,
-      name: 'PREMIUM',
-      price: 999, // ₹999 per month
-      features: [
-        'Unlimited subscriptions',
-        'AI-powered spending insights',
-        'Priority 24/7 support',
-        'Advanced reporting & forecasting',
-        'API access',
-        'Custom integrations',
-        'Team collaboration (up to 5 users)',
-        'White-label options',
-        'Dedicated account manager'
-      ]
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await publicAPI.getAllPlans();
+      
+      if (response.data && response.data.data) {
+        // Map backend data to match frontend structure
+        const backendPlans = response.data.data.map(plan => ({
+          id: plan.id,
+          name: plan.name,
+          price: parseFloat(plan.price),
+          durationInDays: plan.durationInDays,
+          active: plan.active,
+          features: plan.features || [] // Will be empty for now
+        }));
+        setPlans(backendPlans);
+      } else {
+        setPlans([]);
+      }
+    } catch (err) {
+      console.error('Error fetching plans:', err);
+      setError(err.response?.data?.message || 'Failed to load plans. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const handleSubscribe = (planName) => {
-    alert(`You selected ${planName} plan! (Payment integration coming soon)`);
-    // navigate('/dashboard');
+  const handleSubscribe = async (planId, planName) => {
+    if (!user) {
+      alert('Please login first to subscribe to a plan');
+      navigate('/auth');
+      return;
+    }
+
+    try {
+      setSubscribingPlanId(planId);
+      setError('');
+      
+      const response = await subscriptionAPI.subscribe(planId);
+      alert(response.data?.message || `Successfully subscribed to ${planName} plan!`);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Subscription error:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to subscribe. Please try again.';
+      alert(errorMessage);
+      setError(errorMessage);
+    } finally {
+      setSubscribingPlanId(null);
+    }
   };
 
   const getYearlyPrice = (monthlyPrice) => {
     // 17% discount for yearly
     return Math.round(monthlyPrice * 12 * 0.83);
   };
+
+  if (loading) {
+    return (
+      <div className="pricing-page">
+        <div className="pricing-wrapper">
+          <div style={{ textAlign: 'center', padding: '100px 20px', fontSize: '20px' }}>
+            Loading plans...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pricing-page">
@@ -103,77 +126,114 @@ const PricingPage = () => {
           </div>
         </header>
 
+        {/* Error Message */}
+        {error && (
+          <div style={{ 
+            backgroundColor: '#fee', 
+            border: '1px solid #fcc', 
+            color: '#c33', 
+            padding: '15px', 
+            borderRadius: '8px', 
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
+
         {/* Pricing Cards */}
         <div className="pricing-grid">
-          {plans.map((plan) => {
-            const monthlyPrice = plan.price;
-            const yearlyPrice = getYearlyPrice(monthlyPrice);
-            const displayPrice = billingCycle === 'monthly' ? monthlyPrice : Math.round(yearlyPrice / 12);
-            const totalYearlyPrice = yearlyPrice;
-            const isPopular = plan.name === 'PREMIUM';
-            
-            return (
-              <div 
-                key={plan.id} 
-                className={`pricing-card ${isPopular ? 'popular' : ''}`}
-              >
-                {isPopular && (
-                  <div className="popular-badge">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M8 1l2.163 4.382L15 6.09l-3.5 3.409.826 4.818L8 12.236l-4.326 2.081.826-4.818L1 6.09l4.837-.708L8 1z"/>
-                    </svg>
-                    Most Popular
-                  </div>
-                )}
-
-                <div className="card-header">
-                  <h3 className="plan-title">{plan.name}</h3>
-                  <div className="price-section">
-                    {plan.price === 0 ? (
-                      <div className="price">
-                        <span className="amount">Free</span>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="price">
-                          <span className="currency">₹</span>
-                          <span className="amount">{displayPrice.toLocaleString('en-IN')}</span>
-                          <span className="period">/month</span>
-                        </div>
-                        {billingCycle === 'yearly' && (
-                          <p className="billing-note">
-                            ₹{totalYearlyPrice.toLocaleString('en-IN')} billed annually
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  className={`subscribe-btn ${isPopular ? 'primary' : 'secondary'}`}
-                  onClick={() => handleSubscribe(plan.name)}
+          {plans.length === 0 ? (
+            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '50px', color: '#666' }}>
+              No plans available at the moment.
+            </div>
+          ) : (
+            plans.map((plan) => {
+              const monthlyPrice = plan.price;
+              const yearlyPrice = getYearlyPrice(monthlyPrice);
+              const displayPrice = billingCycle === 'monthly' ? monthlyPrice : Math.round(yearlyPrice / 12);
+              const totalYearlyPrice = yearlyPrice;
+              const isPopular = plan.name === 'PREMIUM';
+              
+              return (
+                <div 
+                  key={plan.id} 
+                  className={`pricing-card ${isPopular ? 'popular' : ''}`}
                 >
-                  {plan.price === 0 ? 'Get Started Free' : `Get ${plan.name} Plan`}
-                </button>
+                  {isPopular && (
+                    <div className="popular-badge">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 1l2.163 4.382L15 6.09l-3.5 3.409.826 4.818L8 12.236l-4.326 2.081.826-4.818L1 6.09l4.837-.708L8 1z"/>
+                      </svg>
+                      Most Popular
+                    </div>
+                  )}
 
-                <div className="features-section">
-                  <p className="features-heading">What's included:</p>
-                  <ul className="features-list">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="feature-item">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                          <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" opacity="0.2"/>
-                          <path d="M6 10l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="card-header">
+                    <h3 className="plan-title">{plan.name}</h3>
+                    <div className="price-section">
+                      {plan.price === 0 ? (
+                        <div className="price">
+                          <span className="amount">Free</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="price">
+                            <span className="currency">₹</span>
+                            <span className="amount">{displayPrice.toLocaleString('en-IN')}</span>
+                            <span className="period">/month</span>
+                          </div>
+                          {billingCycle === 'yearly' && (
+                            <p className="billing-note">
+                              ₹{totalYearlyPrice.toLocaleString('en-IN')} billed annually
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    className={`subscribe-btn ${isPopular ? 'primary' : 'secondary'} ${!plan.active ? 'disabled' : ''} ${subscribingPlanId === plan.id ? 'loading' : ''}`}
+                    onClick={() => handleSubscribe(plan.id, plan.name)}
+                    disabled={!plan.active || subscribingPlanId === plan.id}
+                  >
+                    {subscribingPlanId === plan.id 
+                      ? 'Processing...' 
+                      : plan.price === 0 
+                        ? 'Get Started Free' 
+                        : `Get ${plan.name} Plan`
+                    }
+                  </button>
+
+                  <div className="features-section">
+                    <p className="features-heading">What's included:</p>
+                    <ul className="features-list">
+                      {plan.features && plan.features.length > 0 ? (
+                        plan.features.map((feature, index) => (
+                          <li key={index} className="feature-item">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                              <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" opacity="0.2"/>
+                              <path d="M6 10l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            <span>{feature}</span>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="feature-item">
+                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" opacity="0.2"/>
+                            <path d="M6 10l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          <span>Duration: {plan.durationInDays} days</span>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
 
         {/* FAQ Section */}

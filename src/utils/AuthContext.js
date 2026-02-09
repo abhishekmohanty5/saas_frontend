@@ -3,6 +3,9 @@ import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
+// Admin email - YOU are the admin!
+const ADMIN_EMAIL = 'abhishekmohanty78962@gmail.com';
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,54 +21,111 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
- 
-const login = async (email, password) => {
-  try {
-    const response = await authAPI.login({ email, password });
-    
-    // YOUR BACKEND RETURNS: { message, data: { email, token }, status, timestamp }
-    const { data } = response.data;  // Extract data from AppResponse wrapper
-    const { token, email: userEmail } = data;
-    
-    localStorage.setItem('token', token);
-    
-    // Create user object
-    const userData = {
-      email: userEmail,
-      role: 'USER'  // Default role
-    };
-    
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-    
-    return { success: true };
-  } catch (error) {
-    return { 
-      success: false, 
-      error: error.response?.data?.message || 'Login failed' 
-    };
-  }
-};
- 
-const register = async (userData) => {
-  try {
-    // Register with backend: { userName, email, password }
-    const regResponse = await authAPI.register(userData);
-    
-    // YOUR BACKEND RETURNS: { message, data: { username, email }, status, timestamp }
-    console.log('Registration successful:', regResponse.data);
-    
-    // After successful registration, auto-login
-    const loginResult = await login(userData.email, userData.password);
-    
-    return loginResult;
-  } catch (error) {
-    return { 
-      success: false, 
-      error: error.response?.data?.message || 'Registration failed' 
-    };
-  }
-};
+  const login = async (email, password) => {
+    try {
+      const response = await authAPI.login({ email, password });
+      
+      console.log('Login response:', response.data);
+      
+      // Backend returns: { message, data: { email, token }, status, timestamp }
+      const { data, message } = response.data;
+      
+      // Validate response
+      if (!data || !data.token) {
+        return { 
+          success: false, 
+          error: message || 'Invalid response from server' 
+        };
+      }
+      
+      const { token, email: userEmail } = data;
+      
+      // Store token
+      localStorage.setItem('token', token);
+      
+      // Check if user is admin (your email)
+      const role = userEmail === ADMIN_EMAIL ? 'ADMIN' : 'USER';
+      
+      // Create user object
+      const userData = {
+        email: userEmail,
+        role: role
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      
+      console.log('User logged in as:', role);
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      // Extract error message from backend
+      let errorMessage = 'Login failed';
+      
+      if (error.response?.status === 401) {
+        errorMessage = 'Invalid email or password';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Email not registered. Please sign up first.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      return { 
+        success: false, 
+        error: errorMessage
+      };
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await authAPI.register(userData);
+      
+      console.log('Registration response:', response.data);
+      
+      // Backend returns: { message, data: { username, email }, status, timestamp }
+      const { message } = response.data;
+      
+      // Registration successful - DO NOT AUTO-LOGIN
+      // Return success so AuthPage can redirect to login
+      return { 
+        success: true,
+        message: message || 'Registration successful! Please login.'
+      };
+    } catch (error) {
+      console.error('Registration error:', error);
+      
+      // Extract error message from backend
+      let errorMessage = 'Registration failed';
+      
+      if (error.response?.status === 409 || 
+          error.response?.status === 500 && error.message.includes('Duplicate')) {
+        errorMessage = 'Email already registered. Please login instead.';
+      } else if (error.response?.status === 400) {
+        // Password validation or other validation errors
+        errorMessage = error.response.data?.message || 'Invalid input. Please check your password requirements.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message.includes('Duplicate')) {
+        errorMessage = 'Email already registered. Please login instead.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      return { 
+        success: false, 
+        error: errorMessage
+      };
+    }
+  };
 
   const logout = () => {
     authAPI.logout();

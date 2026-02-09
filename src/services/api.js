@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-// Backend API base URL - Change this to your Spring Boot server URL
+// Backend base URL
 const API_BASE_URL = 'http://localhost:8080/api';
 
-// Create axios instance with default config
+// Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -25,31 +25,57 @@ api.interceptors.request.use(
   }
 );
 
-// AUTH APIs
+// Handle response errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Unauthorized - clear token and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/auth';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ==================== AUTH ENDPOINTS ====================
 export const authAPI = {
+  // Register new user
   register: (userData) => api.post('/auth/reg', userData),
+  
+  // Login user
   login: (credentials) => api.post('/auth/log', credentials),
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  },
 };
 
-// SUBSCRIPTION APIs
+// ==================== PUBLIC ENDPOINTS ====================
+export const publicAPI = {
+  // Get all plans (no auth required)
+  getAllPlans: () => api.get('/public'),
+};
+
+// ==================== SUBSCRIPTION ENDPOINTS ====================
 export const subscriptionAPI = {
-  getAllPlans: () => api.get('/subscription/plans'),
-  subscribe: (planId) => api.post('/subscription/subscribe', { planId }),
-  getUserSubscription: () => api.get('/subscription/user'),
-  cancelSubscription: () => api.post('/subscription/cancel'),
-  upgradeSubscription: (newPlanId) => api.put('/subscription/upgrade', { planId: newPlanId }),
+  // Subscribe to a plan
+  subscribe: (planId) => api.post(`/subscriptions/subscribe/${planId}`),
+  
+  // Get user's current subscription
+  getUserSubscription: () => api.get('/subscriptions'),
+  
+  // Cancel subscription
+  cancelSubscription: () => api.put('/subscriptions/cancel'),
 };
 
-// ADMIN APIs
+// ==================== ADMIN ENDPOINTS ====================
 export const adminAPI = {
-  createPlan: (planData) => api.post('/admin/plans', planData),
-  updatePlan: (planId, planData) => api.put(`/admin/plans/${planId}`, planData),
-  deletePlan: (planId) => api.delete(`/admin/plans/${planId}`),
-  getAllUsers: () => api.get('/admin/users'),
+  // Create new plan
+  createPlan: (planData) => api.post('/admin/plan', planData),
+  
+  // Activate plan
+  activatePlan: (planId) => api.put(`/admin/plan/${planId}/activate`),
+  
+  // Deactivate plan
+  deactivatePlan: (planId) => api.put(`/admin/plan/${planId}/deactivate`),
 };
 
 export default api;

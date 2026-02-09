@@ -16,6 +16,7 @@ const AuthPage = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(''); // ADD THIS
 
   const navigate = useNavigate();
   const { login, register } = useAuth();
@@ -29,6 +30,10 @@ const AuthPage = () => {
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    // Clear success message when user starts typing
+    if (successMessage) {
+      setSuccessMessage('');
     }
   };
 
@@ -52,20 +57,20 @@ const AuthPage = () => {
       newErrors.email = 'Please enter a valid email';
     }
 
-   // Password validation
-     if (!formData.password) {
-       newErrors.password = 'Password is required';
-} else if (formData.password.length < 8) {
-  newErrors.password = 'Password must be at least 8 characters';
-} else if (!/(?=.*[A-Z])/.test(formData.password)) {
-  newErrors.password = 'Password must contain at least one uppercase letter';
-} else if (!/(?=.*[a-z])/.test(formData.password)) {
-  newErrors.password = 'Password must contain at least one lowercase letter';
-} else if (!/(?=.*\d)/.test(formData.password)) {
-  newErrors.password = 'Password must contain at least one number';
-} else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
-  newErrors.password = 'Password must contain at least one special character (@$!%*?&)';
-}
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 2) {
+      newErrors.password = 'Password must be at least 2 characters';
+    } else if (!/(?=.*[A-Z])/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter';
+    } else if (!/(?=.*[a-z])/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one lowercase letter';
+    } else if (!/(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one number';
+    } else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one special character (@$!%*?&)';
+    }
 
     // Confirm password validation (only for register)
     if (!isLogin) {
@@ -86,17 +91,44 @@ const AuthPage = () => {
     if (!validateForm()) return;
 
     setLoading(true);
+    setErrors({});
+    setSuccessMessage('');
+
     try {
       if (isLogin) {
-        await login(formData.email, formData.password);
-        navigate('/dashboard');
+        // LOGIN FLOW
+        const result = await login(formData.email, formData.password);
+        
+        if (result.success) {
+          navigate('/dashboard'); // Redirect to dashboard on success
+        } else {
+          // Show backend error
+          setErrors({ submit: result.error });
+        }
       } else {
-        await register({
+        // REGISTRATION FLOW
+        const result = await register({
           userName: formData.name,
           email: formData.email,
           password: formData.password
         });
-        navigate('/dashboard');
+        
+        if (result.success) {
+          // Show success message and switch to login
+          setSuccessMessage(result.message || 'Registration successful! Please login.');
+          setIsLogin(true); // Switch to login tab
+          // Clear form
+          setFormData({
+            name: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+            rememberMe: false
+          });
+        } else {
+          // Show backend error
+          setErrors({ submit: result.error });
+        }
       }
     } catch (error) {
       setErrors({ submit: error.message || 'An error occurred. Please try again.' });
@@ -120,6 +152,7 @@ const AuthPage = () => {
       rememberMe: false
     });
     setErrors({});
+    setSuccessMessage(''); // Clear success message when switching
   };
 
   return (
@@ -197,6 +230,14 @@ const AuthPage = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="auth-form">
+            {/* SUCCESS MESSAGE */}
+            {successMessage && (
+              <div className="success-message">
+                {successMessage}
+              </div>
+            )}
+
+            {/* ERROR MESSAGE */}
             {errors.submit && (
               <div className="error-message global-error">
                 {errors.submit}
