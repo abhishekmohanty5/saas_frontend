@@ -75,13 +75,6 @@ const PricingPage = () => {
       <div className="pricing-wrapper">
         {/* Header Section */}
         <header className="pricing-header">
-          <div className="logo-container">
-            <div className="logo">
-              <span className="logo-icon">S</span>
-              <span className="logo-text">SubHub</span>
-            </div>
-          </div>
-          
           <h1 className="main-title">Choose Your Plan</h1>
           <p className="subtitle">Simple, transparent pricing for everyone</p>
 

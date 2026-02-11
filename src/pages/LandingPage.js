@@ -74,15 +74,8 @@ const LandingPage = () => {
             <p className="hero-subtitle-premium">
               Streamline, Optimize, and Scale Your Subscription Management with Our Powerful SaaS Solution. Join 1000+ companies managing their subscriptions effortlessly.
             </p>
-            <div className="hero-buttons-premium">
-              <button className="btn-primary-premium" onClick={() => navigate('/pricing')}>
-                <span>14 Days Free Trial</span>
-                <span className="btn-arrow">→</span>
-              </button>
-              <button className="btn-secondary-premium" onClick={() => navigate('/login')}>
-                Login
-              </button>
-            </div>
+
+            {/* Stats */}
             <div className="hero-stats-premium">
               <div className="stat-item-premium">
                 <span className="stat-number-premium">1000+</span>
@@ -99,6 +92,15 @@ const LandingPage = () => {
                 <span className="stat-label-premium">Uptime</span>
               </div>
             </div>
+
+            {/* ✅ CLEAN WHITE CTA BUTTON */}
+            <div className="hero-cta-container">
+              <button className="hero-cta-btn-clean" onClick={() => navigate('/pricing')}>
+                <span className="btn-text-clean">Start Your Free Trial</span>
+                <span className="btn-arrow-clean">→</span>
+              </button>
+            </div>
+
           </div>
 
           {/* Premium Dashboard Mockup */}
@@ -113,7 +115,7 @@ const LandingPage = () => {
                 </div>
                 <span className="window-title-text">SubHub Dashboard</span>
               </div>
-              
+
               <div className="dashboard-layout">
                 <div className="dashboard-sidebar-premium">
                   <div className="sidebar-section">
@@ -211,7 +213,7 @@ const LandingPage = () => {
             <h2 className="section-title-premium">Why Choose SubHub?</h2>
             <p className="section-description">Everything you need to manage subscriptions effortlessly</p>
           </div>
-          
+
           <div className="features-grid-premium">
             {features.map((feature, index) => (
               <div key={index} className="feature-card-premium">
@@ -230,14 +232,10 @@ const LandingPage = () => {
         <div className="cta-content-premium">
           <h2 className="cta-title">Ready to Transform Your Subscription Management?</h2>
           <p className="cta-subtitle">Join thousands of satisfied customers today</p>
-          <button className="cta-button-premium" onClick={() => navigate('/pricing')}>
-            Start Your Free Trial
-            <span className="btn-arrow">→</span>
-          </button>
         </div>
       </section>
 
-      {/* Premium Footer - CLEANED UP */}
+      {/* Premium Footer */}
       <footer className="footer-premium">
         <div className="footer-container-premium">
           <div className="footer-grid">
